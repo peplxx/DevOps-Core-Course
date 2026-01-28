@@ -1,7 +1,9 @@
 # Lab 01 - DevOps Info Service
 
-**Student Name**: Melnikov Sergei (s.melnikov@innopolis.university) 
+**Student Name**: Melnikov Sergei
+
 **Date**: January 28, 2026  
+
 **Lab**: Lab 01 - Web Application Development
 
 ## 1. Framework Selection
