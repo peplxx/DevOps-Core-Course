@@ -1,0 +1,25 @@
+# Byte-code files
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+.venv/
+
+# Environment variables (but keep .env.example)
+.env
+.env.*
+!.env.example
+
+# Editor/IDE-specific files
+.idea/  # For PyCharm/IntelliJ
+.vscode/ # For VS Code (optional, can contain useful settings)
+
+# OS-specific files
+.DS_Store # macOS
+Thumbs.db # Windows
+
+# Python build artifacts
+dist/
+build/
+*.egg-info/
