@@ -1,0 +1,15 @@
+.git
+.gitignore
+
+# Build artifacts / caches
+zig-out/
+zig-cache/
+.zig-cache/
+
+# Local/editor files
+.DS_Store
+.idea/
+.vscode/
+
+# Not required at runtime
+docs/
