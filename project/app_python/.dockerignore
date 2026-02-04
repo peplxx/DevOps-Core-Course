@@ -1,0 +1,28 @@
+.git
+.gitignore
+
+# Environments / secrets
+.env
+.env.*
+venv/
+.venv/
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Tooling caches
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# Local/editor files
+.DS_Store
+.idea/
+.vscode/
+
+# Not required at runtime
+docs/
+tests/

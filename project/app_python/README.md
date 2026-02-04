@@ -13,7 +13,7 @@ The DevOps Info Service exposes RESTful endpoints that return detailed informati
 
 ## Prerequisites
 
-- **Python**: 3.14 or higher
+- **Python**: 3.13 or higher
 - **Package Manager**: `uv` (recommended) or `pip`
 - **Operating System**: Linux, macOS, or Windows
 
@@ -89,6 +89,14 @@ python -m app
 ```
 
 The service will start on `http://0.0.0.0:5000` by default.
+
+## Docker
+
+You can run the service as a container (Lab 2).
+
+- **Build the image locally**: run `docker build` from the `app_python/` directory and tag it as `<name>:<tag>`.
+- **Run a container**: run `docker run` with port publishing (`-p <host_port>:5000`) and an optional container name. The app listens on port `5000` inside the container by default.
+- **Pull from Docker Hub**: `docker pull <dockerhub_user>/<repo>:<tag>`, then run it the same way as the local image.
 
 #### Custom Configuration
 
