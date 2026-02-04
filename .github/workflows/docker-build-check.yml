@@ -7,14 +7,26 @@ on:
     branches: [main, master]
 
 env:
-  BUILD_CONTEXT: ./project/app_python
-  IMAGE_NAME: devops-info-service
+  PYTHON_CONTEXT: ./project/app_python
+  ZIG_CONTEXT: ./project/app_zig
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: python
+            context: ./project/app_python
+            file: ./project/app_python/Dockerfile
+            tag: devops-info-service-python:test
+          - name: zig
+            context: ./project/app_zig
+            file: ./project/app_zig/Dockerfile
+            tag: devops-info-service-zig:test
     steps:
       - uses: actions/checkout@v4
 
@@ -29,9 +41,10 @@ jobs:
       - name: Build Image (no push)
         uses: docker/build-push-action@v6
         with:
-          context: ${{ env.BUILD_CONTEXT }}
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
           platforms: linux/amd64,linux/arm64
           push: false
-          tags: ${{ env.IMAGE_NAME }}:test
+          tags: ${{ matrix.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
