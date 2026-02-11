@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
+
 import uvicorn
+
 from app.settings import settings
 
 # Change dir to project root (one level up from this file)

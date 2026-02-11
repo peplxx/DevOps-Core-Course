@@ -1,5 +1,7 @@
 # DevOps Info Service
 
+[![Python CI (app_python)](https://github.com/peplxx/DevOps-Core-Course/actions/workflows/python-ci.yml/badge.svg?branch=master)](https://github.com/peplxx/DevOps-Core-Course/actions/workflows/python-ci.yml)
+
 A FastAPI-based web service that provides comprehensive system information and health status. This service is designed to evolve throughout the DevOps Core Course, serving as a foundation for containerization, CI/CD, monitoring, and deployment practices.
 
 ## Overview
@@ -13,7 +15,7 @@ The DevOps Info Service exposes RESTful endpoints that return detailed informati
 
 ## Prerequisites
 
-- **Python**: 3.13 or higher
+- **Python**: 3.11 or higher (CI uses 3.11+)
 - **Package Manager**: `uv` (recommended) or `pip`
 - **Operating System**: Linux, macOS, or Windows
 
@@ -37,9 +39,6 @@ make env install
 ```bash
 # Install dependencies
 uv sync
-
-# Or install manually
-uv pip install -r requirements.txt
 ```
 
 #### Using pip and venv
@@ -55,7 +54,7 @@ source venv/bin/activate
 venv\Scripts\activate
 
 # Install dependencies
-pip install -r requirements.txt
+pip install .
 ```
 
 ## Running the Application
@@ -225,7 +224,6 @@ app_python/
 ├── Makefile                # Build automation
 ├── pyproject.toml          # Project metadata and dependencies
 ├── README.md               # This file
-├── requirements.txt        # Pinned dependencies (pip)
 └── uv.lock                 # Locked dependencies (uv)
 ```
 
@@ -271,8 +269,28 @@ make install    # Install dependencies
 make run        # Run in production mode
 make dev        # Run in development mode
 make format     # Format and fix code with ruff
+make lint       # Lint code with ruff
+make test       # Run unit tests (pytest)
 make clean      # Clean cache files
 make info       # Show environment info
+```
+
+## Testing (Lab 3)
+
+### Run tests with uv (recommended)
+
+```bash
+cd project/app_python
+uv sync --dev
+uv run pytest
+```
+
+### Run tests with Makefile
+
+```bash
+cd project/app_python
+make install
+make test
 ```
 
 ## Technologies Used
@@ -280,7 +298,7 @@ make info       # Show environment info
 - **FastAPI** - Modern, fast web framework
 - **Uvicorn** - ASGI server
 - **Pydantic** - Data validation and settings management
-- **Python 3.14+** - Latest Python features
+- **Python 3.11+** - Supported by CI
 
 ## Future Enhancements
 

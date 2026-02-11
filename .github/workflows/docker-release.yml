@@ -2,7 +2,7 @@ name: Release Image Build
 
 on:
   push:
-    tags: ["v*"]
+    tags: ["v*.*.*"]
 
 env:
   BUILD_CONTEXT: ./project/app_python

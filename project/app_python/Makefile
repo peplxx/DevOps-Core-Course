@@ -1,4 +1,4 @@
-.PHONY: help run dev install clean env info format
+.PHONY: help run dev install clean env info format lint test
 
 # Load environment variables from .env if it exists
 ifeq ($(shell test -e '.env' && echo -n yes),yes)
@@ -56,6 +56,16 @@ format: ##@Code Format and fix code with ruff
 	@echo "${BLUE}Formatting code...${RESET}"
 	@uv run ruff check --fix app/
 	@echo "${GREEN}✓ Code formatted${RESET}"
+
+lint: ##@Code Lint code with ruff (no fixes)
+	@echo "${BLUE}Linting code...${RESET}"
+	@uv run ruff check app/ tests/
+	@echo "${GREEN}✓ Lint completed${RESET}"
+
+test: ##@Code Run unit tests
+	@echo "${BLUE}Running tests...${RESET}"
+	@uv run pytest -q
+	@echo "${GREEN}✓ Tests passed${RESET}"
 
 clean: ##@Cleanup Clean up cache files
 	@echo "${BLUE}Cleaning up...${RESET}"
