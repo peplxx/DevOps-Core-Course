@@ -1,19 +1,19 @@
 import logging
-from typing import Dict, Any
+from typing import Any, Dict
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from app.settings import settings
 from app.helpers import (
+    get_current_timestamp,
+    get_endpoints_list,
+    get_request_info,
+    get_runtime_info,
     get_service_info,
     get_system_info,
-    get_runtime_info,
-    get_request_info,
-    get_endpoints_list,
-    get_current_timestamp,
-    get_uptime
+    get_uptime,
 )
+from app.settings import settings
 
 # Configure logging
 logging.basicConfig(

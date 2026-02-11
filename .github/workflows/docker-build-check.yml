@@ -2,9 +2,9 @@ name: Docker Build Check
 
 on:
   push:
-    branches: [main, master]
+    branches: [master]
   pull_request:
-    branches: [main, master]
+    branches: [master]
 
 env:
   PYTHON_CONTEXT: ./project/app_python

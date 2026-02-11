@@ -2,7 +2,7 @@ import os
 import platform
 import socket
 from datetime import datetime, timezone
-from typing import Dict, Any
+from typing import Any, Dict
 
 from fastapi import Request
 

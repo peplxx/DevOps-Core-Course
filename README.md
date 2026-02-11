@@ -3,6 +3,7 @@
 [![Labs](https://img.shields.io/badge/Labs-18-blue)](#labs)
 [![Exam](https://img.shields.io/badge/Exam-Optional-green)](#exam-alternative)
 [![Duration](https://img.shields.io/badge/Duration-18%20Weeks-lightgrey)](#course-roadmap)
+[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-peplxx%2Fdevops--info--service-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/repository/docker/peplxx/devops-info-service/general)
 
 Master **production-grade DevOps practices** through hands-on labs. Build, containerize, deploy, monitor, and scale applications using industry-standard tools.
 
