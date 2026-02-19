@@ -8,6 +8,7 @@ This folder provisions a small VM in Yandex Cloud for Lab 04 (and can be kept fo
 - Security group:
   - SSH **22** from anywhere
   - HTTP **80** from anywhere
+  - App port **5000** from anywhere
 - Compute instance (Ubuntu image family, NAT enabled → public IP)
 
 ## Prerequisites

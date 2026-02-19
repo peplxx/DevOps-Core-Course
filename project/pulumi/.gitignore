@@ -1,0 +1,6 @@
+node_modules/
+dist/
+
+# Pulumi local state / stack configs (may contain secrets)
+.pulumi/
+Pulumi.*.yaml
