@@ -1,0 +1,11 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+*.tfvars
+.terraform.lock.hcl
+
+# Local helper files
+*.log
+
+certs/*

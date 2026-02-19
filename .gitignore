@@ -1,1 +1,22 @@
-test
+.DS_Store
+
+# Terraform
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/terraform.tfvars
+**/*.tfvars
+**/.terraform.lock.hcl
+
+# Pulumi
+**/node_modules/
+**/dist/
+**/Pulumi.*.yaml
+
+# Credentials / keys (keep project files explicit)
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*credentials*
+**/*secret*

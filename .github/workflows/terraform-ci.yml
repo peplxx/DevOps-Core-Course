@@ -1,0 +1,64 @@
+name: Terraform CI (IaC validation)
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - "project/terraform/**"
+      - ".github/workflows/terraform-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      TF_IN_AUTOMATION: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Terraform directory
+        id: tfdir
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -d "project/terraform" ]]; then
+            echo "dir=project/terraform" >> "$GITHUB_OUTPUT"
+          elif [[ -d "terraform" ]]; then
+            echo "dir=terraform" >> "$GITHUB_OUTPUT"
+          else
+            echo "No terraform directory found (expected project/terraform or terraform)" >&2
+            exit 1
+          fi
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.14.0"
+
+      - name: Terraform fmt (check)
+        working-directory: ${{ steps.tfdir.outputs.dir }}
+        run: terraform fmt -check -recursive
+
+      - name: Terraform init (no backend)
+        working-directory: ${{ steps.tfdir.outputs.dir }}
+        run: terraform init -backend=false
+
+      - name: Terraform validate
+        working-directory: ${{ steps.tfdir.outputs.dir }}
+        run: terraform validate
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v3
+        with:
+          tflint_version: latest
+
+      - name: TFLint
+        working-directory: ${{ steps.tfdir.outputs.dir }}
+        run: |
+          tflint --version
+          tflint --init
+          tflint --format compact
