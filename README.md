@@ -40,7 +40,7 @@ Master **production-grade DevOps practices** through hands-on labs. Build, conta
 | 16 | 16 | Cluster Monitoring | Kube-Prometheus, Init Containers |
 | — | **Exam Alternative Labs** | | |
 | 17 | 17 | Edge Deployment | Fly.io, Global Distribution |
-| 18 | 18 | Decentralized Storage | 4EVERLAND, IPFS, Web3 |
+| 18 | 18 | Reproducible Builds | Nix, Deterministic Builds, Flakes |
 
 ---
 
@@ -62,7 +62,7 @@ Don't want to take the exam? Complete **both** bonus labs:
 | Lab | Topic | Points |
 |-----|-------|--------|
 | **Lab 17** | Fly.io Edge Deployment | 20 pts |
-| **Lab 18** | 4EVERLAND & IPFS | 20 pts |
+| **Lab 18** | Reproducible Builds with Nix | 20 pts |
 
 **Requirements:**
 - Complete both labs (17 + 18 = 40 pts, replaces exam)
@@ -143,7 +143,7 @@ Each lab is worth **10 points** (main tasks) + **2.5 points** (bonus).
 - StatefulSets, Monitoring
 
 **Exam Alternative (Labs 17-18)**
-- Fly.io, 4EVERLAND/IPFS
+- Fly.io, Nix Reproducible Builds
 
 </details>
 
