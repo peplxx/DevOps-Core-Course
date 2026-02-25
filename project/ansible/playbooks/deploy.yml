@@ -1,0 +1,24 @@
+---
+- name: Deploy application
+  hosts: webservers
+  become: yes
+
+  vars_files:
+    - ../group_vars/all.yml
+
+  roles:
+    - app_deploy
+
+  post_tasks:
+    - name: Get container status
+      command: docker ps -f name={{ app_container_name }}
+      register: container_status
+      changed_when: false
+
+    - name: Display container status
+      debug:
+        msg: "{{ container_status.stdout_lines }}"
+
+    - name: Display application URL
+      debug:
+        msg: "Application available at http://{{ ansible_host }}:{{ app_port }}"

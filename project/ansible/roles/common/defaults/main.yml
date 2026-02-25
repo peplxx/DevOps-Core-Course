@@ -1,0 +1,16 @@
+---
+# Пакеты для установки
+common_packages:
+  - python3-pip
+  - curl
+  - git
+  - vim
+  - htop
+  - wget
+  - net-tools
+  - ca-certificates
+  - gnupg
+  - lsb-release
+
+# Часовой пояс
+timezone: "Europe/Moscow"

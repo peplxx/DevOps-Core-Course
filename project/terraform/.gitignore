@@ -9,3 +9,4 @@ terraform.tfvars
 *.log
 
 certs/*
+authorized_key.json

@@ -41,7 +41,7 @@ resource "yandex_vpc_security_group" "this" {
 
   ingress {
     protocol       = "TCP"
-    description    = "App port (future labs)"
+    description    = "App port"
     v4_cidr_blocks = ["0.0.0.0/0"]
     port           = 5000
   }
