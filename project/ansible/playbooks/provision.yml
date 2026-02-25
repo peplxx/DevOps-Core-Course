@@ -1,0 +1,18 @@
+---
+- name: Provision web servers
+  hosts: webservers
+  become: yes
+  
+  roles:
+    - common
+    - docker
+
+  post_tasks:
+    - name: Verify Docker installation
+      command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: Display Docker version
+      debug:
+        msg: "Docker installed: {{ docker_version.stdout }}"

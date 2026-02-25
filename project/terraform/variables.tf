@@ -42,7 +42,7 @@ variable "ssh_private_key_path" {
 variable "instance_name" {
   description = "Compute instance name."
   type        = string
-  default     = "lab04-vm"
+  default     = "lab05-vm"
 }
 
 variable "image_family" {
@@ -94,7 +94,7 @@ variable "labels" {
   type        = map(string)
 
   default = {
-    lab = "lab04"
+    lab = "lab05"
     iac = "terraform"
   }
 }

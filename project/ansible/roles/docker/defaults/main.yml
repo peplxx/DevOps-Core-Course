@@ -1,0 +1,14 @@
+---
+# Пользователь для добавления в группу docker
+docker_user: "{{ ansible_user }}"
+
+# Пакеты Docker
+docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+
+# Python пакеты для Ansible Docker модулей (используем apt пакеты)
+docker_python_packages:
+  - python3-docker
+  - python3-requests
