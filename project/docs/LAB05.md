@@ -977,6 +977,4 @@ Next lab will extend this foundation with:
 
 ---
 
-**Lab completed successfully!** 🎉
-
 **Application accessible at**: http://89.169.154.122:5000
