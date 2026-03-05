@@ -21,6 +21,7 @@ on:
           - "provision only"
           - "deploy only"
           - "provision and deploy"
+          - "wipe and deploy"
 
 jobs:
   lint:
@@ -95,6 +96,16 @@ jobs:
             --vault-password-file /tmp/vault_pass \
             -v
 
+      - name: Run Ansible Playbook - Wipe (if requested)
+        if: github.event.inputs.deploy_target == 'wipe and deploy'
+        run: |
+          cd project/ansible
+          ansible-playbook playbooks/deploy.yml \
+            --vault-password-file /tmp/vault_pass \
+            -e "web_app_wipe=true" \
+            --tags web_app_wipe \
+            -v
+
       - name: Run Ansible Playbook - Deploy
         if: github.event.inputs.deploy_target != 'provision only'
         run: |
@@ -111,13 +122,13 @@ jobs:
         if: github.event.inputs.deploy_target != 'provision only'
         run: |
           sleep 15
-          curl -f http://${{ secrets.VM_HOST }}:8000/ || echo "Main endpoint check failed"
-          curl -f http://${{ secrets.VM_HOST }}:8000/health || echo "Health check failed"
+          curl -f http://${{ secrets.VM_HOST }}:5000/ || echo "Main endpoint check failed"
+          curl -f http://${{ secrets.VM_HOST }}:5000/health || echo "Health check failed"
 
       - name: Deployment Summary
         run: |
           echo "## Deployment Complete! 🚀" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Target Host:** ${{ secrets.VM_HOST }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Application URL:** http://${{ secrets.VM_HOST }}:8000" >> $GITHUB_STEP_SUMMARY
-          echo "- **Health Check:** http://${{ secrets.VM_HOST }}:8000/health" >> $GITHUB_STEP_SUMMARY
+          echo "- **Application URL:** http://${{ secrets.VM_HOST }}:5000" >> $GITHUB_STEP_SUMMARY
+          echo "- **Health Check:** http://${{ secrets.VM_HOST }}:5000/health" >> $GITHUB_STEP_SUMMARY

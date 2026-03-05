@@ -46,6 +46,13 @@ resource "yandex_vpc_security_group" "this" {
     port           = 5000
   }
 
+  ingress {
+    protocol       = "TCP"
+    description    = "App2 port"
+    v4_cidr_blocks = ["0.0.0.0/0"]
+    port           = 8000
+  }
+
   egress {
     protocol       = "ANY"
     description    = "Allow all outbound"

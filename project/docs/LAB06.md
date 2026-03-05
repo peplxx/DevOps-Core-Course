@@ -13,7 +13,7 @@ Lab 06 extends Ansible automation with **production-ready features**: blocks for
 - **Control Node**: macOS (local machine)
 - **Target Node**: Yandex Cloud VM
 - **OS**: Ubuntu 24.04 LTS
-- **VM IP**: 89.169.154.122
+- **VM IP**: 130.193.39.236
 - **SSH**: Key-based authentication
 
 ### Technology Stack
@@ -547,7 +547,7 @@ ansible-playbook playbooks/deploy.yml
 # Application Configuration
 web_app_name: devops-app
 web_app_container_name: "{{ web_app_name }}"
-web_app_port: 8000
+web_app_port: 5000
 web_app_internal_port: "{{ web_app_port }}"
 
 # Aliases for backward compatibility
@@ -775,7 +775,7 @@ skipping: [my-vm]
 | Secret Name | Description | How to Obtain |
 |-------------|-------------|---------------|
 | `SSH_PRIVATE_KEY` | VM SSH private key | `cat ../terraform/certs/devops` |
-| `VM_HOST` | Target VM IP address | `89.169.154.122` |
+| `VM_HOST` | Target VM IP address | `130.193.39.236` |
 | `VM_USER` | SSH username | `ubuntu` |
 | `ANSIBLE_VAULT_PASSWORD` | Vault decryption password | `cat .vault_pass` |
 
@@ -879,10 +879,10 @@ jobs:
         run: |
           sleep 10
           echo "Testing main endpoint..."
-          curl -f http://${{ secrets.VM_HOST }}:8000/ || exit 1
+          curl -f http://${{ secrets.VM_HOST }}:5000/ || exit 1
           echo ""
           echo "Testing health endpoint..."
-          curl -f http://${{ secrets.VM_HOST }}:8000/health || exit 1
+          curl -f http://${{ secrets.VM_HOST }}:5000/health || exit 1
 ```
 
 ### Path Filters
@@ -1094,13 +1094,13 @@ TASK [Display container status] ************************************************
 ok: [my-vm] => {
     "msg": [
         "CONTAINER ID   IMAGE                             STATUS          PORTS",
-        "abc123def456   peplxx/devops-info-service        Up 2 minutes    0.0.0.0:8000->8000/tcp"
+        "abc123def456   peplxx/devops-info-service        Up 2 minutes    0.0.0.0:5000->5000/tcp"
     ]
 }
 
 TASK [Display application URL] *************************************************
 ok: [my-vm] => {
-    "msg": "Application available at http://89.169.154.122:8000"
+    "msg": "Application available at http://130.193.39.236:5000"
 }
 
 PLAY RECAP *********************************************************************
@@ -1110,7 +1110,7 @@ my-vm                      : ok=12   changed=1    unreachable=0    failed=0
 ### Generated docker-compose.yml
 
 ```bash
-$ ssh -i ../terraform/certs/devops ubuntu@89.169.154.122 "cat /opt/devops-app/docker-compose.yml"
+$ ssh -i ../terraform/certs/devops ubuntu@130.193.39.236 "cat /opt/devops-app/docker-compose.yml"
 ```
 
 ```yaml
@@ -1122,13 +1122,13 @@ services:
     image: peplxx/devops-info-service:latest
     container_name: devops-app
     ports:
-      - "8000:8000"
+      - "5000:5000"
     environment:
       APP_ENV: "production"
       LOG_LEVEL: "info"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -1147,14 +1147,14 @@ networks:
 ### Application Health Check
 
 ```bash
-$ curl http://89.169.154.122:8000/health
+$ curl http://130.193.39.236:5000/health
 {
   "status": "healthy",
   "timestamp": "2024-03-05T15:30:00.000000+00:00",
   "uptime_seconds": 1234
 }
 
-$ curl http://89.169.154.122:8000/
+$ curl http://130.193.39.236:5000/
 {
   "service": {
     "name": "devops-info-service",
@@ -1370,14 +1370,14 @@ ansible-playbook playbooks/deploy.yml -e "web_app_wipe=true"
 
 ```bash
 # Check application
-curl http://89.169.154.122:8000/
-curl http://89.169.154.122:8000/health
+curl http://130.193.39.236:5000/
+curl http://130.193.39.236:5000/health
 
 # Check container
-ssh -i ../terraform/certs/devops ubuntu@89.169.154.122 "docker ps"
+ssh -i ../terraform/certs/devops ubuntu@130.193.39.236 "docker ps"
 
 # Check docker-compose file
-ssh -i ../terraform/certs/devops ubuntu@89.169.154.122 "cat /opt/devops-app/docker-compose.yml"
+ssh -i ../terraform/certs/devops ubuntu@130.193.39.236 "cat /opt/devops-app/docker-compose.yml"
 
 # Run lint
 ansible-lint playbooks/*.yml
@@ -1423,12 +1423,12 @@ ansible-lint playbooks/*.yml
 
 - **Image**: peplxx/devops-info-service:latest
 - **Container Name**: devops-app
-- **Port**: 8000
+- **Port**: 5000
 - **Compose File**: /opt/devops-app/docker-compose.yml
-- **URL**: http://89.169.154.122:8000
+- **URL**: http://130.193.39.236:5000
 
 ---
 
-**Application accessible at**: http://89.169.154.122:8000
+**Application accessible at**: http://130.193.39.236:5000
 
 **CI/CD Status**: [![Ansible Deployment](https://github.com/peplxx/DevOps-Core-Course/actions/workflows/ansible-deploy.yml/badge.svg)](https://github.com/peplxx/DevOps-Core-Course/actions/workflows/ansible-deploy.yml)
