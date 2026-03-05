@@ -1,0 +1,31 @@
+---
+# Application Configuration
+app_name: devops-app
+app_container_name: "{{ app_name }}"
+app_port: 8000
+app_internal_port: "{{ app_port }}"
+
+# Docker Configuration
+docker_image: peplxx/devops-info-service
+docker_image_tag: latest
+docker_compose_version: "3.8"
+
+# Container Configuration
+container_state: started
+container_restart_policy: unless-stopped
+container_recreate: true
+container_pull: true
+
+# Deployment Paths
+compose_project_dir: "/opt/{{ app_name }}"
+
+# Health Check Configuration
+health_check_url: "http://localhost:{{ app_port }}/health"
+health_check_retries: 5
+health_check_delay: 5
+
+# Wipe Logic Control
+# Set to true AND use --tags web_app_wipe to remove application completely
+# Wipe only:     ansible-playbook deploy.yml -e "web_app_wipe=true" --tags web_app_wipe
+# Clean install: ansible-playbook deploy.yml -e "web_app_wipe=true"
+web_app_wipe: false

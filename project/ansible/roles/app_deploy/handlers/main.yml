@@ -1,8 +1,0 @@
----
-- name: verify application health
-  uri:
-    url: "{{ health_check_url }}"
-    status_code: 200
-  retries: 3
-  delay: 5
-  listen: "verify application health"

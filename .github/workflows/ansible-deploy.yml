@@ -1,0 +1,123 @@
+name: Ansible Deployment
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "project/ansible/**"
+      - ".github/workflows/ansible-deploy.yml"
+  pull_request:
+    branches: [main, master]
+    paths:
+      - "project/ansible/**"
+  workflow_dispatch:
+    inputs:
+      deploy_target:
+        description: "Deployment target"
+        required: true
+        default: "provision and deploy"
+        type: choice
+        options:
+          - "provision only"
+          - "deploy only"
+          - "provision and deploy"
+
+jobs:
+  lint:
+    name: Ansible Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install ansible ansible-lint
+
+      - name: Run ansible-lint
+        run: |
+          cd project/ansible
+          ansible-lint playbooks/*.yml roles/**/tasks/*.yml --exclude roles/**/templates/ || true
+
+  deploy:
+    name: Deploy Application
+    needs: lint
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Ansible and dependencies
+        run: |
+          pip install ansible docker
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Create vault password file
+        run: |
+          echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > /tmp/vault_pass
+          chmod 600 /tmp/vault_pass
+
+      - name: Update inventory with actual host
+        run: |
+          cd project/ansible
+          cat > inventory/hosts.ini << EOF
+          [webservers]
+          my-vm ansible_host=${{ secrets.VM_HOST }} ansible_user=${{ secrets.VM_USER }}
+
+          [webservers:vars]
+          ansible_python_interpreter=/usr/bin/python3
+          ansible_ssh_private_key_file=~/.ssh/id_rsa
+          EOF
+
+      - name: Run Ansible Playbook - Provision
+        if: github.event.inputs.deploy_target != 'deploy only'
+        run: |
+          cd project/ansible
+          ansible-playbook playbooks/provision.yml \
+            --vault-password-file /tmp/vault_pass \
+            -v
+
+      - name: Run Ansible Playbook - Deploy
+        if: github.event.inputs.deploy_target != 'provision only'
+        run: |
+          cd project/ansible
+          ansible-playbook playbooks/deploy.yml \
+            --vault-password-file /tmp/vault_pass \
+            -v
+
+      - name: Cleanup vault password
+        if: always()
+        run: rm -f /tmp/vault_pass
+
+      - name: Verify Deployment
+        if: github.event.inputs.deploy_target != 'provision only'
+        run: |
+          sleep 15
+          curl -f http://${{ secrets.VM_HOST }}:8000/ || echo "Main endpoint check failed"
+          curl -f http://${{ secrets.VM_HOST }}:8000/health || echo "Health check failed"
+
+      - name: Deployment Summary
+        run: |
+          echo "## Deployment Complete! 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target Host:** ${{ secrets.VM_HOST }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Application URL:** http://${{ secrets.VM_HOST }}:8000" >> $GITHUB_STEP_SUMMARY
+          echo "- **Health Check:** http://${{ secrets.VM_HOST }}:8000/health" >> $GITHUB_STEP_SUMMARY
