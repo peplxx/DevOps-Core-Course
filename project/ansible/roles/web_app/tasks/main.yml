@@ -1,0 +1,91 @@
+---
+- name: Include wipe tasks
+  ansible.builtin.include_tasks:
+    file: wipe.yml
+  tags:
+    - web_app_wipe
+    - app_deploy
+
+- name: Deploy application with Docker Compose
+  become: true
+  tags:
+    - app_deploy
+    - compose
+  block:
+    - name: Log in to Docker Hub
+      community.docker.docker_login:
+        username: "{{ dockerhub_username }}"
+        password: "{{ dockerhub_password }}"
+        registry_url: https://index.docker.io/v1/
+      become: false
+      no_log: true
+      when: dockerhub_username is defined and dockerhub_password is defined
+
+    - name: Create application directory
+      ansible.builtin.file:
+        path: "{{ compose_project_dir }}"
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+
+    - name: Template docker-compose file
+      ansible.builtin.template:
+        src: docker-compose.yml.j2
+        dest: "{{ compose_project_dir }}/docker-compose.yml"
+        mode: '0644'
+        owner: root
+        group: root
+      register: web_app_compose_template
+
+    - name: Pull Docker image
+      ansible.builtin.command:
+        cmd: "docker pull {{ docker_image }}:{{ docker_image_tag }}"
+      when: container_pull | default(true)
+      changed_when: true
+
+    - name: Deploy with docker-compose
+      ansible.builtin.command:
+        cmd: docker compose up -d --remove-orphans
+        chdir: "{{ compose_project_dir }}"
+      register: web_app_compose_up
+      changed_when: web_app_compose_template.changed
+
+    - name: Wait for application port to be available
+      ansible.builtin.wait_for:
+        host: localhost
+        port: "{{ app_port }}"
+        delay: 2
+        timeout: 60
+        state: started
+
+    - name: Verify application is responding
+      ansible.builtin.uri:
+        url: "{{ health_check_url }}"
+        status_code: 200
+        timeout: 10
+      retries: "{{ health_check_retries }}"
+      delay: "{{ health_check_delay }}"
+      register: web_app_health_check
+      until: web_app_health_check.status == 200
+
+  rescue:
+    - name: Log deployment failure
+      ansible.builtin.debug:
+        msg: "Deployment of {{ app_name }} failed. Check logs for details."
+
+    - name: Get docker logs for debugging
+      ansible.builtin.command:
+        cmd: "docker logs {{ app_container_name }}"
+      register: web_app_docker_logs
+      changed_when: false
+      failed_when: false
+
+    - name: Display docker logs
+      ansible.builtin.debug:
+        var: web_app_docker_logs.stdout_lines
+      when: web_app_docker_logs is defined
+
+    - name: Fail with helpful message
+      ansible.builtin.fail:
+        msg: "Application deployment failed. Review the docker logs above."

@@ -1,6 +1,12 @@
 ---
+# Complete infrastructure setup: provision + deploy
+
 - name: Complete infrastructure setup
-  import_playbook: provision.yml
+  ansible.builtin.import_playbook: provision.yml
+  tags:
+    - provision
 
 - name: Deploy application
-  import_playbook: deploy.yml
+  ansible.builtin.import_playbook: deploy.yml
+  tags:
+    - deploy

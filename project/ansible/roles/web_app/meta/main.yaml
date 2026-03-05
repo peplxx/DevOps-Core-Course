@@ -1,0 +1,10 @@
+---
+
+galaxy_info:
+  role_name: web_app
+  author: DevOps Student
+  description: Deploy web applications using Docker Compose
+  min_ansible_version: "2.16"
+
+dependencies:
+  - role: docker

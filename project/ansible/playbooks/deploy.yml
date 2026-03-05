@@ -1,24 +1,38 @@
 ---
+# Deploy application using Docker Compose
+
 - name: Deploy application
   hosts: webservers
-  become: yes
+  become: true
 
   vars_files:
     - ../group_vars/all.yml
 
   roles:
-    - app_deploy
+    - role: web_app
+      tags:
+        - app_deploy
+        - deploy
 
   post_tasks:
     - name: Get container status
-      command: docker ps -f name={{ app_container_name }}
+      ansible.builtin.command: docker ps -f name={{ app_container_name }}
       register: container_status
       changed_when: false
+      tags:
+        - verify
+        - deploy
 
     - name: Display container status
-      debug:
+      ansible.builtin.debug:
         msg: "{{ container_status.stdout_lines }}"
+      tags:
+        - verify
+        - deploy
 
     - name: Display application URL
-      debug:
+      ansible.builtin.debug:
         msg: "Application available at http://{{ ansible_host }}:{{ app_port }}"
+      tags:
+        - verify
+        - deploy

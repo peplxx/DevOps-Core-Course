@@ -1,0 +1,20 @@
+---
+# .ansible-lint configuration
+
+# Skip these rules (too strict for learning)
+skip_list:
+  - var-naming[no-role-prefix]  # Variable naming convention
+  - name[casing]                 # Handler name casing
+  - key-order[task]              # Task key ordering
+  - command-instead-of-module    # Using shell commands
+  - schema[meta]                 # Meta file schema
+
+# Warn only (don't fail)
+warn_list:
+  - ignore-errors
+  - no-changed-when
+
+# Exclude paths
+exclude_paths:
+  - .git/
+  - roles/**/templates/

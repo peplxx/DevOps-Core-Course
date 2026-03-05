@@ -1,18 +1,32 @@
 ---
+# Provision web servers with common packages and Docker
+
 - name: Provision web servers
   hosts: webservers
-  become: yes
-  
+  become: true
+
   roles:
-    - common
-    - docker
+    - role: common
+      tags:
+        - common
+        - provision
+    - role: docker
+      tags:
+        - docker
+        - provision
 
   post_tasks:
     - name: Verify Docker installation
-      command: docker --version
+      ansible.builtin.command: docker --version
       register: docker_version
       changed_when: false
+      tags:
+        - verify
+        - provision
 
     - name: Display Docker version
-      debug:
+      ansible.builtin.debug:
         msg: "Docker installed: {{ docker_version.stdout }}"
+      tags:
+        - verify
+        - provision
