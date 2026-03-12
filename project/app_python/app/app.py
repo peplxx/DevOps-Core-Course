@@ -13,13 +13,11 @@ from app.helpers import (
     get_system_info,
     get_uptime,
 )
+from app.logging_config import setup_logging  # Import our JSON logger
 from app.settings import settings
 
-# Configure logging
-logging.basicConfig(
-    level=logging.DEBUG if settings.debug else logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+# Configure JSON logging
+logger = setup_logging(debug=settings.debug)
 logger = logging.getLogger(__name__)
 
 # Initialize FastAPI application
@@ -29,7 +27,72 @@ app = FastAPI(
     description=settings.app_description
 )
 
-logger.info(f"Application starting... (version {settings.app_version})")
+logger.info(
+    "Application starting",
+    extra={
+        "app_name": settings.app_name,
+        "version": settings.app_version,
+        "debug": settings.debug,
+        "host": settings.host,
+        "port": settings.port
+    }
+)
+
+
+# ===== Middleware for Request Logging =====
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log all HTTP requests with timing."""
+    import time
+    
+    start_time = time.time()
+    
+    # Log request start
+    logger.info(
+        "Request started",
+        extra={
+            "method": request.method,
+            "path": request.url.path,
+            "client_ip": request.client.host if request.client else "unknown",
+            "user_agent": request.headers.get("user-agent", "unknown")
+        }
+    )
+    
+    # Process request
+    try:
+        response = await call_next(request)
+        duration_ms = round((time.time() - start_time) * 1000, 2)
+        
+        # Log successful response
+        logger.info(
+            "Request completed",
+            extra={
+                "method": request.method,
+                "path": request.url.path,
+                "status_code": response.status_code,
+                "client_ip": request.client.host if request.client else "unknown",
+                "duration_ms": duration_ms
+            }
+        )
+        
+        return response
+    except Exception as e:
+        duration_ms = round((time.time() - start_time) * 1000, 2)
+        
+        # Log error
+        logger.error(
+            "Request failed",
+            extra={
+                "method": request.method,
+                "path": request.url.path,
+                "client_ip": request.client.host if request.client else "unknown",
+                "duration_ms": duration_ms,
+                "error": str(e),
+                "error_type": type(e).__name__
+            }
+        )
+        raise
 
 
 # ===== Error Handlers =====
@@ -37,7 +100,15 @@ logger.info(f"Application starting... (version {settings.app_version})")
 @app.exception_handler(404)
 async def not_found_handler(request: Request, exc) -> JSONResponse:
     """Handle 404 Not Found errors."""
-    logger.warning(f"404 Not Found: {request.method} {request.url.path}")
+    logger.warning(
+        "Endpoint not found",
+        extra={
+            "method": request.method,
+            "path": request.url.path,
+            "client_ip": request.client.host if request.client else "unknown",
+            "status_code": 404
+        }
+    )
     return JSONResponse(
         status_code=404,
         content={
@@ -50,7 +121,17 @@ async def not_found_handler(request: Request, exc) -> JSONResponse:
 @app.exception_handler(500)
 async def internal_error_handler(request: Request, exc) -> JSONResponse:
     """Handle 500 Internal Server errors."""
-    logger.error(f"500 Internal Server Error: {request.method} {request.url.path}")
+    logger.error(
+        "Internal server error",
+        extra={
+            "method": request.method,
+            "path": request.url.path,
+            "client_ip": request.client.host if request.client else "unknown",
+            "status_code": 500,
+            "error": str(exc),
+            "error_type": type(exc).__name__
+        }
+    )
     return JSONResponse(
         status_code=500,
         content={
@@ -65,8 +146,13 @@ async def internal_error_handler(request: Request, exc) -> JSONResponse:
 @app.get("/")
 def root(request: Request) -> Dict[str, Any]:
     """Main endpoint returning comprehensive service and system information."""
-    client_ip = request.client.host if request.client else "unknown"
-    logger.debug(f"Request: {request.method} {request.url.path} from {client_ip}")
+    logger.debug(
+        "Serving root endpoint",
+        extra={
+            "endpoint": "/",
+            "client_ip": request.client.host if request.client else "unknown"
+        }
+    )
     
     return {
         "service": get_service_info(),
@@ -80,7 +166,7 @@ def root(request: Request) -> Dict[str, Any]:
 @app.get("/health")
 def health() -> Dict[str, Any]:
     """Health check endpoint for monitoring and orchestration."""
-    logger.debug("Health check requested")
+    logger.debug("Health check requested", extra={"endpoint": "/health"})
     uptime = get_uptime()
     
     return {
