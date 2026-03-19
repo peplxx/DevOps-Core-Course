@@ -1,8 +1,10 @@
 import logging
+import time
 from typing import Any, Dict
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from app.helpers import (
     get_current_timestamp,
@@ -13,18 +15,22 @@ from app.helpers import (
     get_system_info,
     get_uptime,
 )
-from app.logging_config import setup_logging  # Import our JSON logger
+from app.logging_config import setup_logging
+from app.metrics import (
+    devops_info_endpoint_calls,
+    http_request_duration_seconds,
+    http_requests_in_progress,
+    http_requests_total,
+)
 from app.settings import settings
 
-# Configure JSON logging
 logger = setup_logging(debug=settings.debug)
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI application
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
-    description=settings.app_description
+    description=settings.app_description,
 )
 
 logger.info(
@@ -34,65 +40,78 @@ logger.info(
         "version": settings.app_version,
         "debug": settings.debug,
         "host": settings.host,
-        "port": settings.port
-    }
+        "port": settings.port,
+    },
 )
 
 
-# ===== Middleware for Request Logging =====
+# ===== Middleware for Request Logging & Metrics =====
+
+METRICS_PATH = "/metrics"
+
 
 @app.middleware("http")
-async def log_requests(request: Request, call_next):
-    """Log all HTTP requests with timing."""
-    import time
-    
+async def log_and_track_requests(request: Request, call_next):
+    """Log all HTTP requests and record Prometheus metrics."""
+    if request.url.path == METRICS_PATH:
+        return await call_next(request)
+
     start_time = time.time()
-    
-    # Log request start
+    endpoint = request.url.path
+    method = request.method
+
+    http_requests_in_progress.inc()
+
     logger.info(
         "Request started",
         extra={
-            "method": request.method,
-            "path": request.url.path,
+            "method": method,
+            "path": endpoint,
             "client_ip": request.client.host if request.client else "unknown",
-            "user_agent": request.headers.get("user-agent", "unknown")
-        }
+            "user_agent": request.headers.get("user-agent", "unknown"),
+        },
     )
-    
-    # Process request
+
     try:
         response = await call_next(request)
-        duration_ms = round((time.time() - start_time) * 1000, 2)
-        
-        # Log successful response
+        duration = time.time() - start_time
+
+        http_requests_total.labels(
+            method=method, endpoint=endpoint, status=str(response.status_code)
+        ).inc()
+        http_request_duration_seconds.labels(method=method, endpoint=endpoint).observe(duration)
+
         logger.info(
             "Request completed",
             extra={
-                "method": request.method,
-                "path": request.url.path,
+                "method": method,
+                "path": endpoint,
                 "status_code": response.status_code,
                 "client_ip": request.client.host if request.client else "unknown",
-                "duration_ms": duration_ms
-            }
+                "duration_ms": round(duration * 1000, 2),
+            },
         )
-        
         return response
     except Exception as e:
-        duration_ms = round((time.time() - start_time) * 1000, 2)
-        
-        # Log error
+        duration = time.time() - start_time
+
+        http_requests_total.labels(method=method, endpoint=endpoint, status="500").inc()
+        http_request_duration_seconds.labels(method=method, endpoint=endpoint).observe(duration)
+
         logger.error(
             "Request failed",
             extra={
-                "method": request.method,
-                "path": request.url.path,
+                "method": method,
+                "path": endpoint,
                 "client_ip": request.client.host if request.client else "unknown",
-                "duration_ms": duration_ms,
+                "duration_ms": round(duration * 1000, 2),
                 "error": str(e),
-                "error_type": type(e).__name__
-            }
+                "error_type": type(e).__name__,
+            },
         )
         raise
+    finally:
+        http_requests_in_progress.dec()
 
 
 # ===== Error Handlers =====
@@ -143,34 +162,43 @@ async def internal_error_handler(request: Request, exc) -> JSONResponse:
 
 # ===== API Endpoints =====
 
+
+@app.get("/metrics")
+def metrics():
+    """Prometheus metrics endpoint."""
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
 @app.get("/")
 def root(request: Request) -> Dict[str, Any]:
     """Main endpoint returning comprehensive service and system information."""
+    devops_info_endpoint_calls.labels(endpoint="/").inc()
     logger.debug(
         "Serving root endpoint",
         extra={
             "endpoint": "/",
-            "client_ip": request.client.host if request.client else "unknown"
-        }
+            "client_ip": request.client.host if request.client else "unknown",
+        },
     )
-    
+
     return {
         "service": get_service_info(),
         "system": get_system_info(),
         "runtime": get_runtime_info(),
         "request": get_request_info(request),
-        "endpoints": get_endpoints_list()
+        "endpoints": get_endpoints_list(),
     }
 
 
 @app.get("/health")
 def health() -> Dict[str, Any]:
     """Health check endpoint for monitoring and orchestration."""
+    devops_info_endpoint_calls.labels(endpoint="/health").inc()
     logger.debug("Health check requested", extra={"endpoint": "/health"})
     uptime = get_uptime()
-    
+
     return {
         "status": "healthy",
         "timestamp": get_current_timestamp(),
-        "uptime_seconds": uptime["seconds"]
+        "uptime_seconds": uptime["seconds"],
     }
