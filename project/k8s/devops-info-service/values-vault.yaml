@@ -1,0 +1,7 @@
+# Merge with install: helm upgrade --install ... -f values.yaml -f values-vault.yaml
+# Use the same namespace as Vault if Vault is installed there (example: default).
+vaultInjector:
+  enabled: true
+  useCustomTemplate: true
+  role: devops-info-service
+  secretPath: secret/data/devops-info/config

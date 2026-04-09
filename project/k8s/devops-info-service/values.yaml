@@ -27,11 +27,23 @@ securityContext:
   runAsUser: 10001
   runAsGroup: 10001
 
-env:
-  - name: HOST
-    value: "0.0.0.0"
-  - name: PORT
-    value: "5000"
+application:
+  host: "0.0.0.0"
+  port: 5000
+
+credentials:
+  username: changeme-user
+  password: changeme-password
+
+serviceAccount:
+  create: true
+  name: ""
+
+vaultInjector:
+  enabled: false
+  role: devops-info-service
+  secretPath: secret/data/devops-info/config
+  useCustomTemplate: false
 
 livenessProbe:
   httpGet:

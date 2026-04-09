@@ -7,7 +7,7 @@ Expand the name of the chart.
 
 {{/*
 Create a default fully qualified app name.
-Truncated at 63 chars because some Kubernetes name fields are limited to this.
+Truncated at 63 chars because Kubernetes name fields are limited to this.
 */}}
 {{- define "devops-info-service.fullname" -}}
 {{- if .Values.fullnameOverride }}
@@ -19,7 +19,7 @@ Truncated at 63 chars because some Kubernetes name fields are limited to this.
 {{- end }}
 
 {{/*
-Create chart name and version as used by the chart label.
+Create chart name and version as used in the chart label.
 */}}
 {{- define "devops-info-service.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
@@ -41,4 +41,25 @@ Selector labels
 {{- define "devops-info-service.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "devops-info-service.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Service account name for pods (Vault K8s auth binds to this name).
+*/}}
+{{- define "devops-info-service.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "devops-info-service.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Non-sensitive container environment variables (DRY; include in deployment).
+*/}}
+{{- define "devops-info-service.containerEnv" -}}
+- name: HOST
+  value: {{ .Values.application.host | quote }}
+- name: PORT
+  value: {{ .Values.application.port | toString | quote }}
 {{- end }}

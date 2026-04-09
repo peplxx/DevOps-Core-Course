@@ -18,7 +18,22 @@ spec:
     metadata:
       labels:
         {{- include "devops-info-service.labels" . | nindent 8 }}
+      {{- if .Values.vaultInjector.enabled }}
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: {{ .Values.vaultInjector.role | quote }}
+        {{- if .Values.vaultInjector.useCustomTemplate }}
+        vault.hashicorp.com/agent-inject-secret-config: {{ .Values.vaultInjector.secretPath | quote }}
+        vault.hashicorp.com/agent-inject-template-config: |
+{{ .Files.Get "vault-agent-template.tpl" | nindent 10 }}
+        {{- else }}
+        vault.hashicorp.com/agent-inject-secret-config: {{ .Values.vaultInjector.secretPath | quote }}
+        {{- end }}
+      {{- end }}
     spec:
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ include "devops-info-service.serviceAccountName" . }}
+      {{- end }}
       securityContext:
         runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
         runAsUser: {{ .Values.securityContext.runAsUser }}
@@ -48,5 +63,8 @@ spec:
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          envFrom:
+            - secretRef:
+                name: {{ include "devops-info-service.fullname" . }}-credentials
           env:
-            {{- toYaml .Values.env | nindent 12 }}
+            {{- include "devops-info-service.containerEnv" . | nindent 12 }}
