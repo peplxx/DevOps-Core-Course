@@ -25,7 +25,7 @@ spec:
         {{- if .Values.vaultInjector.useCustomTemplate }}
         vault.hashicorp.com/agent-inject-secret-config: {{ .Values.vaultInjector.secretPath | quote }}
         vault.hashicorp.com/agent-inject-template-config: |
-{{ .Files.Get "vault-agent-template.tpl" | nindent 10 }}
+{{ .Files.Get "files/vault-agent-template.tpl" | nindent 10 }}
         {{- else }}
         vault.hashicorp.com/agent-inject-secret-config: {{ .Values.vaultInjector.secretPath | quote }}
         {{- end }}
