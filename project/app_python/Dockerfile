@@ -23,6 +23,8 @@ ENV VIRTUAL_ENV=/app/.venv \
 
 COPY app/ ./app/
 
+RUN mkdir -p /data && chown app:app /data
+
 EXPOSE 5000
 
 USER app

@@ -32,3 +32,7 @@ readinessProbe:
   periodSeconds: 3
   timeoutSeconds: 3
   failureThreshold: 3
+
+# RWO PVC cannot be mounted by multiple pods; keep persistence off when replicaCount > 1.
+persistence:
+  enabled: false

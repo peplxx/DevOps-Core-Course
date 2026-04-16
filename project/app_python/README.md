@@ -97,6 +97,20 @@ You can run the service as a container (Lab 2).
 - **Run a container**: run `docker run` with port publishing (`-p <host_port>:5000`) and an optional container name. The app listens on port `5000` inside the container by default.
 - **Pull from Docker Hub**: `docker pull <dockerhub_user>/<repo>:<tag>`, then run it the same way as the local image.
 
+#### Visit counter and Compose (Lab 12)
+
+Each successful `GET /` increments a counter stored in a file (default path `/data/visits`, overridable with `VISITS_FILE`). `GET /visits` returns the current count. To verify persistence locally, use the provided Compose file (bind-mounts `./data` to `/data`):
+
+```bash
+docker compose up --build
+curl -s http://localhost:5000/ >/dev/null
+curl -s http://localhost:5000/ >/dev/null
+curl -s http://localhost:5000/visits
+cat ./data/visits
+docker compose restart
+curl -s http://localhost:5000/visits   # count should continue from the file
+```
+
 #### Custom Configuration
 
 You can configure the service using environment variables:
@@ -168,10 +182,23 @@ curl http://localhost:5000/
   },
   "endpoints": [
     {"path": "/", "method": "GET", "description": "Service information"},
+    {"path": "/visits", "method": "GET", "description": "Persisted visit counter"},
     {"path": "/health", "method": "GET", "description": "Health check"}
   ]
 }
 ```
+
+### `GET /visits` - Visit counter
+
+Returns the number of times `GET /` has been served, persisted on disk (path from `VISITS_FILE`, default `/data/visits`).
+
+**Example:**
+
+```bash
+curl -s http://localhost:5000/visits
+```
+
+**Example response:** `{"visits": 3}`
 
 ### `GET /health` - Health Check
 
@@ -203,6 +230,7 @@ The application can be configured using environment variables:
 | `APP_NAME` | `devops-info-service` | Application name |
 | `APP_VERSION` | `1.0.0` | Application version |
 | `APP_DESCRIPTION` | `DevOps course info service` | Application description |
+| `VISITS_FILE` | `/data/visits` | Path to the persisted visit counter file |
 
 ## Project Structure
 

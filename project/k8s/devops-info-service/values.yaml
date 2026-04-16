@@ -1,4 +1,5 @@
-replicaCount: 3
+# RWO PVC (Lab 12) attaches to a single node; use 1 replica while persistence is enabled.
+replicaCount: 1
 
 image:
   repository: peplxx/devops-info-service
@@ -30,6 +31,15 @@ securityContext:
 application:
   host: "0.0.0.0"
   port: 5000
+  name: "devops-info-service"
+
+environment: dev
+logLevel: info
+
+persistence:
+  enabled: true
+  size: 100Mi
+  storageClass: ""
 
 credentials:
   username: changeme-user

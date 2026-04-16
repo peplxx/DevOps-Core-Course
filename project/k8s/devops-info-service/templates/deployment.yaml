@@ -38,6 +38,17 @@ spec:
         runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
         runAsUser: {{ .Values.securityContext.runAsUser }}
         runAsGroup: {{ .Values.securityContext.runAsGroup }}
+      volumes:
+        - name: app-config
+          configMap:
+            name: {{ include "devops-info-service.fullname" . }}-config
+        - name: visits-data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "devops-info-service.fullname" . }}-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -63,8 +74,16 @@ spec:
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          volumeMounts:
+            - name: app-config
+              mountPath: /config
+              readOnly: true
+            - name: visits-data
+              mountPath: /data
           envFrom:
             - secretRef:
                 name: {{ include "devops-info-service.fullname" . }}-credentials
+            - configMapRef:
+                name: {{ include "devops-info-service.fullname" . }}-env
           env:
             {{- include "devops-info-service.containerEnv" . | nindent 12 }}

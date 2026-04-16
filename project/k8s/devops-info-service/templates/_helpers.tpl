@@ -62,4 +62,6 @@ Non-sensitive container environment variables (DRY; include in deployment).
   value: {{ .Values.application.host | quote }}
 - name: PORT
   value: {{ .Values.application.port | toString | quote }}
+- name: VISITS_FILE
+  value: "/data/visits"
 {{- end }}
