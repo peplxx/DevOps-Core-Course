@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: devops-info-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/peplxx/DevOps-Core-Course.git
+    targetRevision: feat/lab13
+    path: project/k8s/devops-info-service
+    helm:
+      releaseName: app
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
