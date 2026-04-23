@@ -37,6 +37,8 @@ def test_root_success(client):
     # Endpoints list contract
     assert isinstance(data["endpoints"], list)
     assert {"path": "/", "method": "GET", "description": "Service information"} in data["endpoints"]
+    assert {"path": "/visits", "method": "GET", "description": "Persisted visit counter"} \
+           in data["endpoints"]
     assert {"path": "/health", "method": "GET", "description": "Health check"} in data["endpoints"]
 
 
@@ -61,4 +63,11 @@ def test_404_error_contract(client):
 def test_405_method_not_allowed(client):
     resp = client.post("/health")
     assert resp.status_code == 405
+
+
+def test_visits_counter(client):
+    assert client.get("/visits").json() == {"visits": 0}
+    client.get("/")
+    client.get("/")
+    assert client.get("/visits").json() == {"visits": 2}
 

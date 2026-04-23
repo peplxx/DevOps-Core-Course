@@ -23,6 +23,7 @@ from app.metrics import (
     http_requests_total,
 )
 from app.settings import settings
+from app.visits import increment_visits, read_visits
 
 logger = setup_logging(debug=settings.debug)
 logger = logging.getLogger(__name__)
@@ -173,6 +174,7 @@ def metrics():
 def root(request: Request) -> Dict[str, Any]:
     """Main endpoint returning comprehensive service and system information."""
     devops_info_endpoint_calls.labels(endpoint="/").inc()
+    increment_visits()
     logger.debug(
         "Serving root endpoint",
         extra={
@@ -188,6 +190,13 @@ def root(request: Request) -> Dict[str, Any]:
         "request": get_request_info(request),
         "endpoints": get_endpoints_list(),
     }
+
+
+@app.get("/visits")
+def visits() -> Dict[str, Any]:
+    """Return the persisted visit count (root path hits)."""
+    devops_info_endpoint_calls.labels(endpoint="/visits").inc()
+    return {"visits": read_visits()}
 
 
 @app.get("/health")

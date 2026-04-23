@@ -79,6 +79,7 @@ def get_endpoints_list() -> list[Dict[str, str]]:
     """Get list of available endpoints."""
     return [
         {"path": "/", "method": "GET", "description": "Service information"},
+        {"path": "/visits", "method": "GET", "description": "Persisted visit counter"},
         {"path": "/health", "method": "GET", "description": "Health check"},
         {"path": "/metrics", "method": "GET", "description": "Prometheus metrics"},
     ]

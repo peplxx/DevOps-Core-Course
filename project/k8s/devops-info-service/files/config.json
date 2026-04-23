@@ -1,0 +1,10 @@
+{
+  "applicationName": "devops-info-service",
+  "environment": "dev",
+  "features": {
+    "metrics": true,
+    "visitsCounter": true,
+    "verboseErrors": false
+  },
+  "notes": "Mounted from ConfigMap at /config/config.json (non-sensitive configuration)."
+}
